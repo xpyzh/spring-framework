@@ -53,6 +53,7 @@ public abstract class BeanFactoryUtils {
 
 
 	/**
+	 * 判断beanName是否符合FactoryBean的命名规范，即:"&beanName"
 	 * Return whether the given name is a factory dereference
 	 * (beginning with the factory dereference prefix).
 	 * @param name the name of the bean
@@ -64,6 +65,7 @@ public abstract class BeanFactoryUtils {
 	}
 
 	/**
+	 * FacotryBean的命名方式，则获取真实的beanName，即去掉"&"
 	 * Return the actual bean name, stripping out the factory dereference
 	 * prefix (if any, also stripping repeated factory prefixes if found).
 	 * @param name the name of the bean
