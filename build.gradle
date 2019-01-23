@@ -48,13 +48,13 @@ ext {
 	kotlinVersion        = "1.2.71"
 	log4jVersion         = "2.11.1"
 	nettyVersion         = "4.1.32.Final"
-	reactorVersion       = "Bismuth-SR14"
+	reactorVersion       = "Bismuth-SR15"
 	rxjavaVersion        = "1.3.8"
 	rxjavaAdapterVersion = "1.2.1"
 	rxjava2Version       = "2.1.17"
 	slf4jVersion         = "1.7.25"	  // spring-jcl + consistent 3rd party deps
 	tiles3Version        = "3.0.8"
-	tomcatVersion        = "8.5.35"
+	tomcatVersion        = "8.5.37"
 	undertowVersion      = "1.4.26.Final"
 
 	gradleScriptDir = "${rootProject.projectDir}/gradle"
@@ -191,7 +191,9 @@ configure(allprojects) { project ->
 		"http://fasterxml.github.io/jackson-core/javadoc/2.9/",
 		"http://fasterxml.github.io/jackson-databind/javadoc/2.9/",
 		"http://fasterxml.github.io/jackson-dataformat-xml/javadoc/2.9/",
-		"http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/"
+		"http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/",
+		"https://junit.org/junit4/javadoc/4.12/",
+		"https://junit.org/junit5/docs/${junitJupiterVersion}/api/"
 	] as String[]
 }
 
