@@ -136,8 +136,10 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	private final Set<Object> earlyProxyReferences = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
+	//<cacheKey,proxyClass>,缓存每一个target被代理后类型
 	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<>(16);
 
+	//<cacheKey,True>，缓存所有被代理的target
 	private final Map<Object, Boolean> advisedBeans = new ConcurrentHashMap<>(256);
 
 
@@ -244,6 +246,10 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
+	/**
+	 * 这个方法一般返回null,只有在customTargetSourceCreators不为空的情况才有作用
+	 * @author youzhihao
+	 */
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
 		Object cacheKey = getCacheKey(beanClass, beanName);
@@ -295,6 +301,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
+	 * 非循环引用情况下，创建代理
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
@@ -302,8 +309,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) throws BeansException {
 		if (bean != null) {
-			Object cacheKey = getCacheKey(bean.getClass(), beanName);
-			if (!this.earlyProxyReferences.contains(cacheKey)) {
+			Object cacheKey = getCacheKey(bean.getClass(), beanName);//构建cachekey
+			if (!this.earlyProxyReferences.contains(cacheKey)) {//如果没有因为循环引用问题而提前创建代理
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -312,6 +319,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 
 	/**
+	 * 构建一个cacheKey
+	 * 1.beanName存在:
+	 * 		a.如果是普通bean,beanName作为cacheKey
+	 * 		b.如果是工厂bean,"&beanName"作为cacheKey
+	 * 2.beanName不存在:class作为cacheKey
 	 * Build a cache key for the given bean class and bean name.
 	 * <p>Note: As of 4.2.3, this implementation does not return a concatenated
 	 * class/name String anymore but rather the most efficient cache key possible:
@@ -453,7 +465,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 		ProxyFactory proxyFactory = new ProxyFactory();
-		proxyFactory.copyFrom(this);
+		proxyFactory.copyFrom(this);//先将全局配置赋给ProxyFactory
 
 		if (!proxyFactory.isProxyTargetClass()) {
 			if (shouldProxyTargetClass(beanClass, beanName)) {
@@ -463,7 +475,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				evaluateProxyInterfaces(beanClass, proxyFactory);//评估是否适合使用接口代理，如果不适合，还是会使用类代理
 			}
 		}
-
+		//将specificInterceptors[]统一适配成Advisor[]
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
@@ -521,7 +533,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (specificInterceptors != null) {
 			allInterceptors.addAll(Arrays.asList(specificInterceptors));
 			if (commonInterceptors.length > 0) {
-				if (this.applyCommonInterceptorsFirst) {
+				if (this.applyCommonInterceptorsFirst) {//优先把通用的Interceptors放在最前面
 					allInterceptors.addAll(0, Arrays.asList(commonInterceptors));
 				}
 				else {
@@ -538,6 +550,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 		Advisor[] advisors = new Advisor[allInterceptors.size()];
 		for (int i = 0; i < allInterceptors.size(); i++) {
+			//适配所有interceptor为Advisor,advisorAdapterRegistry默认实现类为DefaultAdvisorAdapterRegistry
 			advisors[i] = this.advisorAdapterRegistry.wrap(allInterceptors.get(i));
 		}
 		return advisors;

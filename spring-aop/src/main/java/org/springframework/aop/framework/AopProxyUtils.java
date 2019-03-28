@@ -130,8 +130,11 @@ public abstract class AopProxyUtils {
 				specifiedInterfaces = advised.getProxiedInterfaces();
 			}
 		}
+		//额外增加SpringProxy接口的代理
 		boolean addSpringProxy = !advised.isInterfaceProxied(SpringProxy.class);
+		//额外增加Advised接口的代理
 		boolean addAdvised = !advised.isOpaque() && !advised.isInterfaceProxied(Advised.class);
+		//额外增加DecoratingProxy接口的代理
 		boolean addDecoratingProxy = (decoratingProxy && !advised.isInterfaceProxied(DecoratingProxy.class));
 		int nonUserIfcCount = 0;
 		if (addSpringProxy) {

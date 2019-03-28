@@ -84,6 +84,7 @@ abstract class ConfigurationClassUtils {
 			return false;
 		}
 
+		//尝试获取AnnotationMetadata开始
 		AnnotationMetadata metadata;
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
@@ -108,19 +109,21 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
+		////尝试获取AnnotationMetadata结束
 
-		if (isFullConfigurationCandidate(metadata)) {
-			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
+		if (isFullConfigurationCandidate(metadata)) {//class类上有@Configuration注解的定义为FullConfiguration
+			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);//bean定义加上标记，防止重复加载
 		}
+		//class类上有@Component,@ComponentScan,@Import,@ImportResource注解的，或者方法上有@Bean注解的，定义为LiteConfiguration
 		else if (isLiteConfigurationCandidate(metadata)) {
-			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
+			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);//bean定义加上标记，防止重复加载
 		}
 		else {
 			return false;
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
-		Integer order = getOrder(metadata);
+		Integer order = getOrder(metadata);//处理@order注解，标记顺序
 		if (order != null) {
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
 		}

@@ -74,6 +74,7 @@ public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 	}
 
 
+	//解析BeanDefinition，解析@scope注解，来设置BeanDefinition
 	@Override
 	public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {
 		ScopeMetadata metadata = new ScopeMetadata();

@@ -124,15 +124,23 @@ public class PropertyPlaceholderHelper {
 		return parseStringValue(value, placeholderResolver, new HashSet<>());
 	}
 
+	//
+
+	/**
+	 * 标准占位符的解析过程
+	 * 占位符格式:${key:defaultValue}
+	 * @author youzhihao
+	 */
 	protected String parseStringValue(
 			String value, PlaceholderResolver placeholderResolver, Set<String> visitedPlaceholders) {
 
 		StringBuilder result = new StringBuilder(value);
 
 		int startIndex = value.indexOf(this.placeholderPrefix);
-		while (startIndex != -1) {
+		while (startIndex != -1) {//存在placeholderPrefix
 			int endIndex = findPlaceholderEndIndex(result, startIndex);
-			if (endIndex != -1) {
+			if (endIndex != -1) {//存在placeholderSuffix
+				//找到中间的key，注意这个key可能包含默认值，即"key:defaultValue"
 				String placeholder = result.substring(startIndex + this.placeholderPrefix.length(), endIndex);
 				String originalPlaceholder = placeholder;
 				if (!visitedPlaceholders.add(originalPlaceholder)) {
@@ -140,25 +148,25 @@ public class PropertyPlaceholderHelper {
 							"Circular placeholder reference '" + originalPlaceholder + "' in property definitions");
 				}
 				// Recursive invocation, parsing placeholders contained in the placeholder key.
-				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);
+				placeholder = parseStringValue(placeholder, placeholderResolver, visitedPlaceholders);//递归解析
 				// Now obtain the value for the fully resolved key...
-				String propVal = placeholderResolver.resolvePlaceholder(placeholder);
-				if (propVal == null && this.valueSeparator != null) {
+				String propVal = placeholderResolver.resolvePlaceholder(placeholder);//解析占位符key，获取真正的value
+				if (propVal == null && this.valueSeparator != null) {//如果没有获取到value，则尝试解析出defaultValue
 					int separatorIndex = placeholder.indexOf(this.valueSeparator);
-					if (separatorIndex != -1) {
-						String actualPlaceholder = placeholder.substring(0, separatorIndex);
+					if (separatorIndex != -1) {//存在defaultValue
+						String actualPlaceholder = placeholder.substring(0, separatorIndex);//尝试获得真正的key,即不含":defaultValue"
 						String defaultValue = placeholder.substring(separatorIndex + this.valueSeparator.length());
 						propVal = placeholderResolver.resolvePlaceholder(actualPlaceholder);
-						if (propVal == null) {
+						if (propVal == null) {//如果还是没有获取到value，则用默认value
 							propVal = defaultValue;
 						}
 					}
 				}
-				if (propVal != null) {
+				if (propVal != null) {//存在一个嵌套解析占位符的过程
 					// Recursive invocation, parsing placeholders contained in the
 					// previously resolved placeholder value.
 					propVal = parseStringValue(propVal, placeholderResolver, visitedPlaceholders);
-					result.replace(startIndex, endIndex + this.placeholderSuffix.length(), propVal);
+					result.replace(startIndex, endIndex + this.placeholderSuffix.length(), propVal);//将占位符替换成真正的value
 					if (logger.isTraceEnabled()) {
 						logger.trace("Resolved placeholder '" + placeholder + "'");
 					}
@@ -209,6 +217,7 @@ public class PropertyPlaceholderHelper {
 
 	/**
 	 * Strategy interface used to resolve replacement values for placeholders contained in Strings.
+	 * 函数接口，根据占位符的key，获取真正的值
 	 */
 	@FunctionalInterface
 	public interface PlaceholderResolver {

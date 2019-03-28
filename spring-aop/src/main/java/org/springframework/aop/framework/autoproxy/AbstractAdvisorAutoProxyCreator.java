@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
+import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -91,10 +92,14 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @see #extendAdvisors
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
-		//查找所有Advisor
+		//查找所有spring容器中实现了Advisor接口的bean
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		//过滤出符合要求的Advisor
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+		// Adds an ExposeInvocationInterceptor to the beginning of the advice chain.
+		// These additional advices are needed when using AspectJ expression pointcuts
+		// and when using AspectJ-style advice.
+		// 实际就是查找现有的Advisor[], 如果存在符合AspectJ风格的Advice，则在Advisor[]链开头增加一个特殊的ExposeInvocationInterceptor.ADVISOR
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
